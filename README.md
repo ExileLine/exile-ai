@@ -79,6 +79,11 @@ DB_BACKEND=mysql
 1. 生成迁移文件（基于模型自动对比）
 
 ```bash
+# 如果`alembic`文件夹不存在或被删除
+uv run alembic init alembic
+```
+
+```bash
 uv run alembic revision --autogenerate -m "init schema"
 ```
 
