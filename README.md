@@ -90,6 +90,11 @@ uv run alembic revision --autogenerate -m "init schema"
 2. 执行迁移到最新版本
 
 ```bash
+# 如果新增了表模型则需要执行
+uv run alembic revision --autogenerate -m "add xxx table"
+```
+
+```bash
 uv run alembic upgrade head
 ```
 

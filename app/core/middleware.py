@@ -89,20 +89,26 @@ class RequestLoggingMiddleware:
             return False
         return True
 
-    async def _receive_body(self, receive: Receive) -> bytes:
+    async def _receive_body(self, receive: Receive) -> tuple[bytes, bool]:
         # 读取完整请求体（需要重建 receive 供下游再次读取）
         body = b""
-        more_body = True
-        while more_body:
-            message = await receive()
-            if message["type"] != "http.request":
-                continue
-            body += message.get("body", b"")
-            more_body = message.get("more_body", False)
-        return body
+        disconnected = False
 
-    def _build_receive(self, body: bytes) -> Receive:
-        # 构造新的 receive，让下游还能拿到 body
+        while True:
+            message = await receive()
+            msg_type = message.get("type")
+            if msg_type == "http.request":
+                body += message.get("body", b"")
+                if not message.get("more_body", False):
+                    break
+                continue
+            if msg_type == "http.disconnect":
+                disconnected = True
+                break
+        return body, disconnected
+
+    def _build_receive(self, body: bytes, original_receive: Receive, disconnected: bool) -> Receive:
+        # 构造新的 receive，让下游还能拿到 body；之后转发原始 receive，保证流式场景可收到 disconnect
         sent = False
 
         async def receive() -> dict:
@@ -110,7 +116,9 @@ class RequestLoggingMiddleware:
             if not sent:
                 sent = True
                 return {"type": "http.request", "body": body, "more_body": False}
-            return {"type": "http.request", "body": b"", "more_body": False}
+            if disconnected:
+                return {"type": "http.disconnect"}
+            return await original_receive()
 
         return receive
 
@@ -135,8 +143,8 @@ class RequestLoggingMiddleware:
 
         body = b""
         if self._should_read_body(method, headers):
-            body = await self._receive_body(receive)
-            receive = self._build_receive(body)
+            body, disconnected = await self._receive_body(receive)
+            receive = self._build_receive(body, receive, disconnected)
 
         status_code = None
         response_headers = []
