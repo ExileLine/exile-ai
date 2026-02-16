@@ -129,6 +129,46 @@ class BaseConfig(BaseSettings):
     CELERY_RESULT_BACKEND: Optional[str] = None
     CELERY_TASK_QUEUE: str = "exile_ai_tasks"
 
+    # LLM配置
+    LLM_TIMEOUT_SECONDS: int = 90
+    LLM_DEV_PROVIDER: str = "deepseek"
+    LLM_DEV_MODEL: str = "deepseek-chat"
+    LLM_PROD_PROVIDER: str = "openai"
+    LLM_PROD_MODEL: str = "gpt-4o-mini"
+    LLM_DEFAULT_TEMPERATURE: float = 0.2
+    LLM_MAX_HISTORY_MESSAGES: int = 40
+    LLM_MAX_TOOL_STEPS: int = 4
+    LLM_RATE_LIMIT_ENABLE: bool = True
+    LLM_RATE_LIMIT_REQUESTS_PER_MINUTE: int = 20
+    LLM_RATE_LIMIT_REQUESTS_PER_DAY: int = 500
+    LLM_TOKEN_QUOTA_PER_DAY: int = 200000
+    LLM_MEMORY_ENABLE: bool = True
+    LLM_MEMORY_SUMMARY_TRIGGER_MESSAGES: int = 24
+    LLM_MEMORY_KEEP_RECENT_MESSAGES: int = 12
+    LLM_MEMORY_SUMMARY_MAX_CHARS: int = 2000
+    LLM_AUTO_FALLBACK_ENABLE: bool = True
+    LLM_FALLBACK_PROVIDERS: str = "deepseek,openai,gemini"
+
+    LLM_ORCHESTRATOR: str = "legacy"
+    LLM_AGENT_MAX_STEPS: int = 8
+    LLM_AGENT_APPROVAL_MODE: str = "manual"
+    LLM_AGENT_CHECKPOINT_BACKEND: str = "db"
+
+    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    DEEPSEEK_MODEL: str = "deepseek-chat"
+
+    OPENAI_API_KEY: str = ""
+    OPENAI_BASE_URL: str = "https://api.openai.com/v1"
+    OPENAI_MODEL: str = "gpt-4o-mini"
+
+    GEMINI_API_KEY: str = ""
+    GEMINI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+
+    EMBEDDING_PROVIDER: str = "openai"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+
     # 日志脱敏配置
     SENSITIVE_HEADERS: str = "authorization,cookie,set-cookie,x-api-key"
 
@@ -156,6 +196,18 @@ class BaseConfig(BaseSettings):
     def MASK_SENSITIVE_HEADERS(self) -> bool:
         # 生产与预发布默认脱敏；如需调整可在此修改策略
         return self.IS_PROD or self.IS_STAGING
+
+    @property
+    def default_llm_provider(self) -> str:
+        if self.IS_PROD or self.IS_STAGING:
+            return (self.LLM_PROD_PROVIDER or "openai").strip().lower()
+        return (self.LLM_DEV_PROVIDER or "deepseek").strip().lower()
+
+    @property
+    def default_llm_model(self) -> str:
+        if self.IS_PROD or self.IS_STAGING:
+            return (self.LLM_PROD_MODEL or "gpt-4o-mini").strip()
+        return (self.LLM_DEV_MODEL or "deepseek-chat").strip()
 
     @property
     def redis_url(self) -> str:

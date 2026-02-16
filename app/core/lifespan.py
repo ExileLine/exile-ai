@@ -90,12 +90,12 @@ async def startup_event():
     try:
         await _init_db()
         await _init_redis()
-        await _init_scheduler()
+        # await _init_scheduler()
     except Exception:
         logger.exception("应用启动失败，开始回收资源")
         await _shutdown_scheduler()
         await _shutdown_redis()
-        await _shutdown_db()
+        # await _shutdown_db()
         raise
 
 
@@ -103,7 +103,7 @@ async def shutdown_event():
     """应用关闭后执行"""
 
     logger.info(">>> shutdown")
-    await _shutdown_scheduler()
+    # await _shutdown_scheduler()
     await _shutdown_redis()
     await _shutdown_db()
 

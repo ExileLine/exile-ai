@@ -21,6 +21,11 @@ dependencies = [
     "asyncpg>=0.30.0",
     "uvicorn[standard]>=0.30.6",
     "email-validator>=2.3.0",
+    "langchain-core>=0.3.0",
+    "langgraph>=0.2.60",
+    "langchain-community>=0.4.1",
+    "langchain>=1.2.10",
+    "langchain-openai>=1.1.9",
 ]
 
 [dependency-groups]

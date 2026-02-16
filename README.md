@@ -8,6 +8,10 @@ AI基建集成
 
 ## 未来开发方向
 
+## LLM API 示例
+
+- `docs/llm-api-examples.md`
+
 ## 环境与依赖管理（uv）
 
 1. 安装依赖
