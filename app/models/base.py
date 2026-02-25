@@ -32,7 +32,13 @@ class Base(DeclarativeBase):
 class CustomBaseModel(Base):
     __abstract__ = True
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, comment="id")
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True,
+        comment="id",
+        sort_order=-1000,
+    )
     create_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=now_tz,
